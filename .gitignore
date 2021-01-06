@@ -1,0 +1,5 @@
+.idea
+*.iml
+*.pyc
+packages/*.rpm
+packages/*.deb
