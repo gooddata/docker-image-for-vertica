@@ -1,0 +1,148 @@
+############################################################################################################
+ARG os_version="7.9.2009"
+
+FROM centos:${os_version} as builder
+
+ENV VERTICA_OPT_DIR="/opt/vertica"
+
+ARG vertica_version="10.0.1-5"
+ARG vertica_package="vertica-${vertica_version}.x86_64.RHEL6.rpm"
+ARG vertica_db_user="dbadmin"
+ARG vertica_db_group="dbadmin"
+ARG vertica_db_name="verticadb"
+ARG remove_packages=""
+
+ADD ./packages/${vertica_package} /tmp/${vertica_package}
+
+# Install prerequisites and Vertica
+RUN set -x \
+ && yum -q -y makecache \
+ # CentOS 8 - enable powertools to fix locales issue
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then yum install -q -y dnf-plugins-core; yum -q config-manager --set-enabled powertools; fi" \
+ && yum install -y mcelog gdb sysstat iproute wget openssl which
+
+# Install prerequisites for VMART generator
+RUN set -x \
+ && yum install -q -y gcc-c++ libstdc++-static glibc-static make \
+ # CentOS 8 - install locales required by Vertica
+ # Fixes issue "Unsupported locale character encoding: use a utf8 locale, not a ANSI_X3.4-1968 locale"
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then yum -q -y install glibc-locale-source; fi"
+
+# Install Vertica package
+RUN set -x \
+ && yum install -q -y /tmp/${vertica_package}
+
+# Cleanup to optimize the size of final image
+RUN set -x \
+ && rm -rf ${VERTICA_OPT_DIR}/lib64
+
+# If required, remove Vertica packages(e.g. MachineLearning), which are not needed
+RUN set -x \
+ && bash -c "for package in $remove_packages; do rm -rf ${VERTICA_OPT_DIR}/packages/\$package; done"
+
+# Create DB user and group in OS. Fix their ID, so they match in the following stage
+RUN /usr/sbin/groupadd -r -g 666 $vertica_db_group \
+ && /usr/sbin/useradd -r -u 666 -m -s /bin/bash -g $vertica_db_group $vertica_db_user
+
+# Run install-vertica
+RUN set -x \
+ # CentOS 8 - fixes issue "Unsupported locale character encoding: use a utf8 locale, not a ANSI_X3.4-1968 locale"
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then localedef -i en_US -f UTF-8 en_US.UTF-8; fi" \
+ # Run install_vertica script to prepare environment
+ && ${VERTICA_OPT_DIR}/sbin/install_vertica --license CE --accept-eula --hosts 127.0.0.1 --dba-user-password-disabled \
+   --failure-threshold NONE --no-system-configuration --point-to-point --ignore-aws-instance-type --ignore-install-config \
+   --no-ssh-key-install --dba-user $vertica_db_user --dba-group $vertica_db_group
+
+# Change owner to vertica DB user everywhere the user needs it
+#RUN set -x \
+# && chown -R $vertica_db_user:$vertica_db_group \
+#   ${VERTICA_OPT_DIR}/config ${VERTICA_OPT_DIR}/log \
+#   ${VERTICA_OPT_DIR}/packages ${VERTICA_OPT_DIR}/examples
+
+ENV VMART_DIR="${VERTICA_OPT_DIR}/examples/VMart_Schema"
+
+# Start / end years generated into date dimension table
+ARG vmart_start_year=2012
+ARG vmart_end_year=2032
+
+# Compile VMART bins and generate date dimension corresponding to start/end years coming from ARGs
+RUN set -x \
+ && cd ${VMART_DIR} \
+ && make vmart_gen \
+ && g++ vmart_genTime.c -o vmart_genTime \
+ && chmod +x vmart_genTime \
+ && ./vmart_genTime ${vmart_start_year} ${vmart_end_year} > Time_custom.txt
+
+############################################################################################################
+FROM centos:${os_version}
+
+ARG vertica_db_user="dbadmin"
+
+ARG vertica_db_user="dbadmin"
+ARG vertica_db_group="dbadmin"
+ARG vertica_db_name="verticadb"
+
+ENV VERTICA_OPT_DIR="/opt/vertica"
+ENV VERTICA_DB_NAME="$vertica_db_name"
+ENV VERTICA_OPT_BIN="${VERTICA_OPT_DIR}/bin"
+ENV VERTICA_HOME_DIR="/home/$vertica_db_user"
+ENV VERTICA_VOLUME_DIR="/data"
+ENV VERTICA_DATA_DIR="${VERTICA_VOLUME_DIR}/vertica"
+ENV PYTHON_EGG_CACHE="/tmp/.python-eggs"
+ENV VMART_DIR="${VERTICA_OPT_DIR}/examples/VMart_Schema"
+ENV VMART_CONFIRM_LOAD_SCHEMA="public"
+ENV VMART_CONFIRM_LOAD_TABLE="vmart_load_success"
+ENV VMART_ETL_SCRIPT="01_load_vmart_schema.sh"
+ENV VMART_ETL_SQL="02_vmart_etl.sql"
+ENV ENTRYPOINT_SCRIPT="docker-entrypoint.sh"
+ENV ENTRYPOINT_SCRIPT_PATH="${VERTICA_HOME_DIR}/${ENTRYPOINT_SCRIPT}"
+
+# Create DB user in OS and create python egg cache dir under this user
+RUN set -x \
+ && /usr/sbin/groupadd -r -g 666 $vertica_db_group \
+ && /usr/sbin/useradd -r -u 666 -m -s /bin/bash -g $vertica_db_group $vertica_db_user \
+ && su - $vertica_db_user -c "mkdir $PYTHON_EGG_CACHE"
+
+COPY --from=builder $VERTICA_OPT_DIR $VERTICA_OPT_DIR
+
+# Install prerequisites, create Vertica data dir, set privileges, document fix timezone issue and generate locales in case of centOS 8
+RUN set -x \
+ && yum -q -y makecache \
+ # CentOS 8 - enable powertools to fix locales issue
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then yum install -q -y dnf-plugins-core; yum -q config-manager --set-enabled powertools; fi" \
+ # CentOS 8 - install locales required by Vertica
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then yum -q -y install glibc-locale-source; fi" \
+ # CentOS 8 - fixes issue "Unsupported locale character encoding: use a utf8 locale, not a ANSI_X3.4-1968 locale"
+ && bash -c "if [ \"$(rpm -E %{rhel})\" == '8' ]; then localedef -i en_US -f UTF-8 en_US.UTF-8; fi" \
+ && yum install -y mcelog gdb sysstat iproute wget openssl which \
+ && mkdir -p ${VERTICA_DATA_DIR} && chown $vertica_db_user:$vertica_db_group ${VERTICA_DATA_DIR} \
+ # TODO - Vertica does not support all time zones (known issue - VER-52479)
+ # This is workaround solution, user can uncomment it, if he requires unsupported timezone
+ # Link OS timezones, because some timezones are missing in Vertica
+ # && rm -rf ${VERTICA_OPT_DIR}/share/timezone \
+ # && ln -sT /usr/share/zoneinfo ${VERTICA_OPT_DIR}/share/timezone \
+ && yum clean all \
+ && rm -rf /var/cache/yum
+
+ADD ./env_setup/vertica_env.sh /etc/profile.d/
+ADD ./vmart/${VMART_ETL_SQL} ./vmart/${VMART_ETL_SCRIPT} ${VMART_DIR}/
+ADD ./${ENTRYPOINT_SCRIPT} ${ENTRYPOINT_SCRIPT_PATH}
+
+# DB is running under vertica_db_user, not under root
+USER $vertica_db_user
+
+WORKDIR ${VERTICA_HOME_DIR}
+
+ADD ./env_setup/.vsqlrc .vsqlrc
+
+VOLUME ${VERTICA_VOLUME_DIR}
+
+ENTRYPOINT $ENTRYPOINT_SCRIPT_PATH
+EXPOSE 5433
+
+LABEL image_name="vertica_db"
+LABEL os_family="centos"
+LABEL os_version="$os_version"
+LABEL vertica_version="$vertica_version"
+LABEL maintainer="vertica@gooddata.com"
+LABEL git_repository_url="https://github.com/gooddata/docker-vertica"
