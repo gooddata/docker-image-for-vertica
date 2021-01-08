@@ -1,3 +1,7 @@
+--
+-- (C) 2020 GoodData Corporation
+--
+
 -- Add timestamp columns into facts tables
 -- Most of use cases can utilize timestamp columns and corresponding SQL functions instead of joining date_dimension table.
 -- Joining date_dimension table has significant negative impact on performance

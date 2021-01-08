@@ -162,7 +162,13 @@ Environment of dbadmin user is extended to be user-friendly, see /etc/profile.d/
 
 ## How to execute scripts during container startup
 
-Check [README in .docker-entrypoint-initdb.d folder](.docker-entrypoint-initdb.d/README.md).
+Place scripts to be executed from entry point script during startup of container into folder "".docker-entrypoint-initdb.d".
+
+Scripts are executed in lexicographical order.
+
+Supported extensions are:
+- sql - SQL commands executed through vsql
+- sh - shell scripts
 
 You have to mount .docker-entrypoint-initdb.d local folder into docker container /docker-entrypoint-initdb.d/ folder.
-Check example in docker-compose sections here.
+Check examples in docker-compose sections here.

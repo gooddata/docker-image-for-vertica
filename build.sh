@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#
+# (C) 2020 GoodData Corporation
+#
+
 set -e
 
 function show_help() {

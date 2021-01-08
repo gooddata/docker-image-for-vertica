@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#
+# (C) 2020 GoodData Corporation
+#
+
 #######################################################################################
 # Set correct search PATH
 export PATH="$PATH:${VERTICA_OPT_BIN}"

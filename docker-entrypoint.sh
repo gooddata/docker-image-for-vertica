@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#
+# (C) 2020 GoodData Corporation
+#
+
 if [ "${DEBUG_FAILING_STARTUP}" != "y" ]; then
   # Stop container, if any error occurs during startup
   # Can be overriden by setting DEBUG_FAILING_STARTUP to "y"
