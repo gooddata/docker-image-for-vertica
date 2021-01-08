@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# (C) 2020 GoodData Corporation
+# (C) 2021 GoodData Corporation
 #
 
 set -e
