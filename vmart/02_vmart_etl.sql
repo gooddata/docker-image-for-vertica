@@ -1,5 +1,5 @@
 --
--- (C) 2020 GoodData Corporation
+-- (C) 2021 GoodData Corporation
 --
 
 -- Add timestamp columns into facts tables

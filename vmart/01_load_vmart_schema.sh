@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# (C) 2020 GoodData Corporation
+# (C) 2021 GoodData Corporation
 #
 
 VSQL="${VERTICA_OPT_DIR}/bin/vsql -U $VERTICA_DB_USER"
