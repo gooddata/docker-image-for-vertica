@@ -118,6 +118,23 @@ After you store it into docker-compose.yaml file, you can simply run:
 docker-compose up -d
 ```
 
+## Integration tests
+
+There is a naive skeleton of integration tests for validation of the current state and for inspiration.
+It can be configured in tests/config.yaml (config_full.yaml).
+For each required combination of OS / Vertica version the image is build, container is started and tests are executed.
+All available customizations of build / run are applied and tested.
+
+Run tests:
+```
+pip3 install requirements_tests.txt
+./tests.py
+# Optionally it is possible to test loading of VMART schema:
+./tests.py -l
+# Use different config file
+./tests.py -l -c tests/config_full.yaml
+```
+
 ## How to configure docker container
 
 It is possible to configure various aspects of Vertica.
