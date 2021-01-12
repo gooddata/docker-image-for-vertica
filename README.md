@@ -10,6 +10,13 @@ It provides:
 - environment setting scripts
 - Scripts for loading of [VMART schema](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm).
 
+## Owners of trademarks
+
+Docker and the Docker logo are trademarks or registered trademarks of Docker, Inc. in the United States and/or other countries.
+Docker, Inc. and other parties may also have trademark rights in other terms used herein.
+
+Vertica™, the Vertica Analytics Platform™, and FlexStore™ are trademarks of Micro Focus International plc.
+
 ## Supported platforms
 
 Vertica:
