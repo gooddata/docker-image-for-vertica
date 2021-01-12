@@ -4,7 +4,7 @@
 # (C) 2021 GoodData Corporation
 #
 
-VSQL="${VERTICA_OPT_DIR}/bin/vsql -U $VERTICA_DB_USER"
+VSQL="${VERTICA_OPT_DIR}/bin/vsql -U ${VERTICA_DB_USER}"
 
 LOAD_CHECK_STRING="ALREADY_LOADED"
 LOAD_CHECK_QUERY="select case when count(*) > 0 then '${LOAD_CHECK_STRING}' end from tables
