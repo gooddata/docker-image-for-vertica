@@ -29,7 +29,7 @@ RUN set -x \
 RUN set -x \
  && /bin/echo "en_US ISO-8859-1" > /etc/locale.gen \
  && /bin/echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
- && /usr/sbin/locale-gen \
+ && /usr/sbin/locale-gen
 
 # Install Vertica package
 RUN set -x \
