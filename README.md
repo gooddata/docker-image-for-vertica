@@ -1,4 +1,4 @@
-# docker-vertica
+# docker-image-for-vertica
 
 Vertica docker deployment (single container version).
 
