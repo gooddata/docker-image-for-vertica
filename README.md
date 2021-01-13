@@ -10,6 +10,13 @@ It provides:
 - environment setting scripts
 - Scripts for loading of [VMART schema](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm).
 
+## Owners of trademarks
+
+Docker and the Docker logo are trademarks or registered trademarks of Docker, Inc. in the United States and/or other countries.
+Docker, Inc. and other parties may also have trademark rights in other terms used herein.
+
+Vertica™, the Vertica Analytics Platform™, and FlexStore™ are trademarks of Micro Focus International plc.
+
 ## Supported platforms
 
 Vertica:
@@ -109,6 +116,23 @@ volumes:
 After you store it into docker-compose.yaml file, you can simply run:
 ```
 docker-compose up -d
+```
+
+## Integration tests
+
+There is a naive skeleton of integration tests for validation of the current state and for inspiration.
+It can be configured in tests/config.yaml (config_full.yaml).
+For each required combination of OS / Vertica version the image is build, container is started and tests are executed.
+All available customizations of build / run are applied and tested.
+
+Run tests:
+```
+pip3 install requirements_tests.txt
+./tests.py
+# Optionally it is possible to test loading of VMART schema:
+./tests.py -l
+# Use different config file
+./tests.py -l -c tests/config_full.yaml
 ```
 
 ## How to configure docker container

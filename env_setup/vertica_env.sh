@@ -11,8 +11,9 @@ export PATH="$PATH:${VERTICA_OPT_BIN}"
 #######################################################################################
 # Vertica variables and aliases
 export VERTICA_DB_HOME="${VERTICA_DATA_DIR}/${VERTICA_DB_NAME}"
-export VERTICA_CATALOG="${VERTICA_DB_HOME}/v_verticadb_*_catalog"
-export VERTICA_DATA="${VERTICA_DB_HOME}/v_verticadb_*_data"
+export VERTICA_CATALOG="${VERTICA_DB_HOME}/v_${VERTICA_DB_NAME}_*_catalog"
+export VERTICA_DATA="${VERTICA_DB_HOME}/v_${VERTICA_DB_NAME}_*_data"
+export VERTICA_DB_USER="`whoami`"
 
 alias cdc="cd $VERTICA_CATALOG"
 alias cdd="cd $VERTICA_DATA"

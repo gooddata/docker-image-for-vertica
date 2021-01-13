@@ -10,8 +10,10 @@ if [ "${DEBUG_FAILING_STARTUP}" != "y" ]; then
   set -e
 fi
 
+# We have to export it here, vertica_env.sh is not propagated into entrypoint script
+export VERTICA_DB_USER="`whoami`"
 STOP_LOOP="false"
-VSQL="${VERTICA_OPT_DIR}/bin/vsql"
+VSQL="${VERTICA_OPT_DIR}/bin/vsql -U ${VERTICA_DB_USER}"
 ADMINTOOLS="${VERTICA_OPT_DIR}/bin/admintools"
 
 # Vertica should be shut down properly
