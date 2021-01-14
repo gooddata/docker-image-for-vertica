@@ -100,22 +100,7 @@ docker run -p 5433:5433 \
 
 ### Docker-compose
 
-Example YAML file:
-```
-version: '3.7'
-
-services:
-  vertica:
-    image: "123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011"
-    ports:
-      - "5433:5433"
-    volumes:
-      - vertica-data:/data
-      - ./.docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
-
-volumes:
-  vertica-data:
-```
+[docker-compose.yaml example](docker-compose.yaml)
 
 After you store it into docker-compose.yaml file, you can simply run:
 ```
@@ -141,25 +126,20 @@ pip3 install requirements_tests.txt
 
 ## How to configure docker container
 
-It is possible to configure various aspects of Vertica.
-To pass a variable to container you must:
-```
-# Docker run
-docker run -p 5433:5433 -d \
-  -e TZ='Europe/Prague' \
-  123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011
+It is possible to configure various aspects of Vertica in container runtime by injecting corresponding environment variables.
 
-# Docker-compose
-  vertica:
-    image: "123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011"
-    ports:
-      - "5433:5433"
-    volumes:
-      - vertica-data:/data
-      - ./.docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
-    environment:
-      TZ: "${VERTICA_CUSTOM_TZ:-Europe/Prague}"
-```
+- Docker run
+    ```
+    docker run -p 5433:5433 -d \
+      -e TZ='Europe/Prague' \
+      123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011
+    ```
+- Docker-compose
+    - [docker-compose.yaml example](docker-compose.yaml)
+    - Run example with inline variable setting
+    ```
+    docker-compose up -d -e VMART_LOAD_DATA=y vertica
+    ```
 
 List of available configuration parameters:
 
@@ -168,15 +148,24 @@ List of available configuration parameters:
   - More info about the schema can be found on [official web site](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm)
 2. APP_DB_USER
   - Name of additional database user, who should be created
+  - This user is created only if this variable is set
   - Pseudosuperuser role is granted and enabled to the user
 3. APP_DB_PASSWORD
   - Password of APP_DB_USER
+  - If it is not set, password is empty
 4. TZ: "${VERTICA_CUSTOM_TZ:-Europe/Prague}"
   - Customize timezone of database
   - Vertica does not contain all time zones - uncomment a workaround solution in Dockerfiles (linking system time zones), if you want to set such a time zone
   - Setting it like this allows you to override it from your environment by setting VERTICA_CUSTOM_TZ variable
 5. DEBUG_FAILING_STARTUP
   - For development purposes. When you set the value to "y", entrypoint script does not end in case of failure, so you can investigate those failures
+
+## How to connect to Vertica database from outside the container
+
+Default entry point is localhost:5433, but it is possible to configure custom port during container startup as described in previous chapters.
+
+It is possible to connect to dbadmin user with empty password or to connect to APP_DB_USER using APP_DB_PASSWORD.
+
 
 ## How to log into docker containers
 
