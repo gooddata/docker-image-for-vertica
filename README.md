@@ -148,9 +148,11 @@ List of available configuration parameters:
   - More info about the schema can be found on [official web site](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm)
 2. APP_DB_USER
   - Name of additional database user, who should be created
+  - This user is created only if this variable is set
   - Pseudosuperuser role is granted and enabled to the user
 3. APP_DB_PASSWORD
   - Password of APP_DB_USER
+  - If it is not set, password is empty
 4. TZ: "${VERTICA_CUSTOM_TZ:-Europe/Prague}"
   - Customize timezone of database
   - Vertica does not contain all time zones - uncomment a workaround solution in Dockerfiles (linking system time zones), if you want to set such a time zone
