@@ -160,6 +160,13 @@ List of available configuration parameters:
 5. DEBUG_FAILING_STARTUP
   - For development purposes. When you set the value to "y", entrypoint script does not end in case of failure, so you can investigate those failures
 
+## How to connect to Vertica database from outside the container
+
+Default entry point is localhost:5433, but it is possible to configure custom port during container startup as described in previous chapters.
+
+It is possible to connect to dbadmin user with empty password or to connect to APP_DB_USER using APP_DB_PASSWORD.
+
+
 ## How to log into docker containers
 
 ```
