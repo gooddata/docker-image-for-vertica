@@ -100,22 +100,7 @@ docker run -p 5433:5433 \
 
 ### Docker-compose
 
-Example YAML file:
-```
-version: '3.7'
-
-services:
-  vertica:
-    image: "123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011"
-    ports:
-      - "5433:5433"
-    volumes:
-      - vertica-data:/data
-      - ./.docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
-
-volumes:
-  vertica-data:
-```
+[docker-compose.yaml example](docker-compose.yaml)
 
 After you store it into docker-compose.yaml file, you can simply run:
 ```
@@ -141,25 +126,20 @@ pip3 install requirements_tests.txt
 
 ## How to configure docker container
 
-It is possible to configure various aspects of Vertica.
-To pass a variable to container you must:
-```
-# Docker run
-docker run -p 5433:5433 -d \
-  -e TZ='Europe/Prague' \
-  123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011
+It is possible to configure various aspects of Vertica in container runtime by injecting corresponding environment variables.
 
-# Docker-compose
-  vertica:
-    image: "123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011"
-    ports:
-      - "5433:5433"
-    volumes:
-      - vertica-data:/data
-      - ./.docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
-    environment:
-      TZ: "${VERTICA_CUSTOM_TZ:-Europe/Prague}"
-```
+- Docker run
+    ```
+    docker run -p 5433:5433 -d \
+      -e TZ='Europe/Prague' \
+      123456789012.dkr.ecr.eu-central-1.amazonaws.com/vertica:10.0.1-5.CentOS_8.3.2011
+    ```
+- Docker-compose
+    - [docker-compose.yaml example](docker-compose.yaml)
+    - Run example with inline variable setting
+    ```
+    docker-compose up -d -e VMART_LOAD_DATA=y vertica
+    ```
 
 List of available configuration parameters:
 
