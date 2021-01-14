@@ -5,9 +5,9 @@ Vertica docker deployment (single container version).
 In the beginning it was inspired by [jbfavre docker-vertica repo](https://github.com/jbfavre/docker-vertica).
 
 It provides:
-- Dockerfiles per OS version
-- entrypoint script running under database OS user (default dbadmin)
-- environment setting scripts
+- Dockerfiles per OS family
+- Entrypoint script running under database OS user (default dbadmin)
+- Environment setting scripts
 - Scripts for loading of [VMART schema](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm).
 
 ## Owners of trademarks
@@ -35,7 +35,7 @@ Debian
 - Jessie
 - Stretch
 
-Most likely the deployment will work for future versions of Vertica and CentOS / Ubuntu.
+Most likely the deployment will work for future versions of Vertica and CentOS / Debian.
 
 It is necessary to prepare separate Dockerfile for other OS families.
 
@@ -44,9 +44,11 @@ It is necessary to prepare separate Dockerfile for other OS families.
 First you have to download Vertica RPM/DEB package, either [Community Edition](https://www.vertica.com/try/)(registration required)
 or you can download Enterprise edition, if you are Vertica customer.
 
-Store RPM/DEB into packages folder and use build.sh script:
+Store RPM/DEB into packages folder.
+
+Easiest way to build images is to use build.sh script:
 ```
-Usage: ./build.sh -v <vertica version> -f <OS family> -o <OS version> [-r <docker repository>]
+Usage: ./build.sh -v <vertica version> -f <OS family> -o <OS version> [-r <image name prefix>] [-p]
 Options are:
   -v - Vertica version, e.g. 10.0.1-5
   -f - OS family, e.g. CentOS
@@ -70,8 +72,10 @@ You may need to customize other parameters, here is the full list:
 docker build -f Dockerfile_CentOS \
              --build-arg vertica_version=10.0.1-5 \
              --build-arg os_version=8.3.2011 \
+             # Both Vertica OS user and implicit superadmin DB user
              --build-arg vertica_db_user=mycustomuser \
              --build-arg vertica_db_group=mycustomgroup \
+             # Database name
              --build-arg vertica_db_name=mycustomname \
              # Start and end years populated into VMART date_dimension table
              --build-arg vmart_start_year=2000 \
@@ -115,14 +119,14 @@ volumes:
 
 After you store it into docker-compose.yaml file, you can simply run:
 ```
-docker-compose up -d
+docker-compose up -d vertica
 ```
 
 ## Integration tests
 
 There is a naive skeleton of integration tests for validation of the current state and for inspiration.
-It can be configured in tests/config.yaml (config_full.yaml).
-For each required combination of OS / Vertica version the image is build, container is started and tests are executed.
+It can be configured in [tests/config.yaml](tests/config.yaml).
+For each required combination of OS / Vertica version the corresponding image is build, the container is started and tests are executed.
 All available customizations of build / run are applied and tested.
 
 Run tests:
@@ -160,20 +164,21 @@ docker run -p 5433:5433 -d \
 List of available configuration parameters:
 
 1. VMART_LOAD_DATA
-  Set value to "y" to enable generating data and loading them into VMART schema
-  More info about the schema can be found on [official web site](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm).
+  - Set value to "y" to enable generating data and loading them into VMART schema
+  - More info about the schema can be found on [official web site](https://www.vertica.com/docs/10.0.x/HTML/Content/Authoring/GettingStartedGuide/IntroducingVMart/IntroducingVMart.htm)
 2. APP_DB_USER
-  Name of additional database user, who should be created.
-  Pseudosuperuser role is granted and enabled to the user.
+  - Name of additional database user, who should be created
+  - Pseudosuperuser role is granted and enabled to the user
 3. APP_DB_PASSWORD
-  Password of APP_DB_USER.
+  - Password of APP_DB_USER
 4. TZ: "${VERTICA_CUSTOM_TZ:-Europe/Prague}"
-  Customize timezone of database.
-  Vertica does not contain all time zones - uncomment a workaround solution in Dockerfile (linking system time zones), if you want to set such time zone.
+  - Customize timezone of database
+  - Vertica does not contain all time zones - uncomment a workaround solution in Dockerfiles (linking system time zones), if you want to set such a time zone
+  - Setting it like this allows you to override it from your environment by setting VERTICA_CUSTOM_TZ variable
 5. DEBUG_FAILING_STARTUP
-  For development purposes. When you set the value to "y", entrypoint script does not end in case of failure, so you can investigate those failures.
+  - For development purposes. When you set the value to "y", entrypoint script does not end in case of failure, so you can investigate those failures
 
-## How to log in docker container
+## How to log into docker containers
 
 ```
 # Pure docker (we named the container in docker run statement above)
@@ -182,11 +187,11 @@ docker exec -it vertica bash -l
 docker-compose exec vertica bash -l
 ```
 
-Environment of dbadmin user is extended to be user-friendly, see /etc/profile.d/vertica_env.sh and $HOME/.vsqlrc for more details.
+Environment of dbadmin user is extended to be user-friendly, check [vertica_env.sh](env_setup/vertica_env.sh) and [.vsqlrc](env_setup/.vsqlrc) scripts for more details.
 
-## How to execute scripts during container startup
+## How to execute custom scripts during container startup
 
-Place scripts to be executed from entry point script during startup of container into folder "".docker-entrypoint-initdb.d".
+Place custom scripts into folder ".docker-entrypoint-initdb.d", the entry point script executes them during startup of container.
 
 Scripts are executed in lexicographical order.
 
