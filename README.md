@@ -110,18 +110,22 @@ docker-compose up -d vertica
 ## Integration tests
 
 There is a naive skeleton of integration tests for validation of the current state and for inspiration.
-It can be configured in [tests/config.yaml](tests/config.yaml).
+It can be configured in [tests/config.yaml](tests/config.yaml). Path to a test config file can be redefined by environment variable VERTICA_IMAGE_TEST_CONFIG. 
 For each required combination of OS / Vertica version the corresponding image is build, the container is started and tests are executed.
 All available customizations of build / run are applied and tested.
 
 Run tests:
 ```
 pip3 install requirements_tests.txt
-./tests.py
+pytest -vv tests
 # Optionally it is possible to test loading of VMART schema:
-./tests.py -l
+pytest -vv tests --test-vmart
 # Use different config file
-./tests.py -l -c tests/config_full.yaml
+VERTICA_IMAGE_TEST_CONFIG=tests/config_full.yaml pytest -vv tests
+```
+There is and option to define several `pytest.ini` files with different configurations and pass them to pytest:
+```
+pytest -c pytest_custom.ini -vv tests
 ```
 
 ## How to configure docker container

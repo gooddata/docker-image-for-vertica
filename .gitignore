@@ -3,3 +3,4 @@
 *.pyc
 packages/*.rpm
 packages/*.deb
+venv
