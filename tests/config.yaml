@@ -11,10 +11,11 @@ vertica_versions:
   - 10.0.1-5
 
 vertica_setup:
+  host: localhost
   exposed_port: 5433
   db_user: vertica
   db_group: vertica
-  db_password: ""     # TODO - should dbadmin have password? Should we use app user?
+  db_password: ""
   db_name: verticadb
   app_db_user: test
   app_db_password: password123
@@ -24,3 +25,4 @@ vertica_setup:
   store_sales_fact_count: 5000000
   remove_packages: "voltagesecure"
   time_zone: "Europe/Prague"
+  vertica_container_name: vertica
