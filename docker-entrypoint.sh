@@ -70,6 +70,8 @@ if [ -z "$(ls -A "${VERTICA_DATA_DIR}")" ]; then
   /bin/mv ${VERTICA_OPT_DIR}/config/admintools.conf ${VERTICA_DATA_DIR}/config/admintools.conf
   /bin/ln -s ${VERTICA_DATA_DIR}/config/admintools.conf ${VERTICA_OPT_DIR}/config/admintools.conf
 else
+  echo 'Restoring admintools.conf'
+  /bin/ln -fs ${VERTICA_DATA_DIR}/config/admintools.conf ${VERTICA_OPT_DIR}/config/admintools.conf
   echo 'Starting Database'
   ${ADMINTOOLS} -t start_db -d $VERTICA_DB_NAME -i
 fi
